@@ -1,0 +1,105 @@
+title: 雪山荘の惨劇
+players: 4
+
+characters:
+  - id: doctor
+    name: 片桐
+    role: 医師
+    public_profile: 被害者の主治医。
+    secrets:
+      - 被害者に多額の借金がある。
+    objectives:
+      - 犯人を特定する。
+      - 借金の存在を隠す。
+  - id: writer
+    name: 雪乃
+    role: 作家
+    public_profile: 山荘の所有者。
+    secrets:
+      - 21:50に書斎から怒鳴り声を聞いた。
+    objectives:
+      - 山荘の評判を守る。
+  - id: journalist
+    name: 黒江
+    role: 記者
+    public_profile: 被害者を取材していた。
+    secrets:
+      - 被害者の机に隠し引き出しがあることを知っている。
+    objectives:
+      - 真相を記事にする。
+  - id: investor
+    name: 千堂
+    role: 投資家
+    public_profile: 被害者の共同事業者。
+    secrets:
+      - あなたが犯人である。
+      - 22:15に停電を利用して犯行に及んだ。
+    objectives:
+      - 最多票を避ける。
+
+truth:
+  culprit: investor
+  crime_time: "22:15"
+  crime_scene: 書斎
+  weapon: 装飾用ナイフ
+  solution: 千堂は投資契約の破棄を恐れ、停電中に被害者を刺した。
+
+evidence:
+  - id: corpse
+    title: 被害者の遺体
+    content: 胸部に一か所の刺創。死亡推定時刻は22時前後。
+  - id: room_photo
+    title: 書斎の写真
+    content: 窓は内側から施錠され、机の引き出しが半開きになっている。
+  - id: diary
+    title: 被害者の日記
+    content: 「千堂に契約破棄を伝える。逆上しなければいいが」と記されている。
+
+phases:
+  - id: opening
+    label: 導入
+    type: discussion
+    duration: 10分
+    start_evidence:
+      - corpse
+      - room_photo
+    instructions: キャラクターの公開情報を確認し、事件発生時の状況を共有してください。
+  - id: investigation
+    label: 第一調査
+    type: investigation
+    duration: 20分
+    instructions: 調査したい場所や物を選択してください。
+  - id: discussion
+    label: 最終議論
+    type: discussion
+    duration: 20分
+    instructions: 集めた証拠を使って容疑者を絞り込んでください。
+  - id: voting
+    label: 投票
+    type: voting
+    duration: 5分
+    instructions: 最も犯人だと思うキャラクターへ投票してください。
+
+events:
+  - id: discover_diary
+    trigger:
+      action: investigate
+      target: desk
+    conditions:
+      phase: investigation
+    result:
+      unlock_evidence:
+        - diary
+      message: 隠し引き出しの奥から被害者の日記を見つけた。
+
+endings:
+  - id: true_end
+    label: 真相解明
+    condition:
+      type: culprit_votes_max
+    text: 真犯人は追い詰められ、事件の全容が明らかになった。
+  - id: bad_end
+    label: 迷宮入り
+    condition:
+      type: default
+    text: 誤った人物が疑われ、真犯人は雪山を後にした。

@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    command: sh -c "pip install -r requirements.txt && python manage.py migrate && daphne -b 0.0.0.0 -p 8000 jinroid_api.asgi:application"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+      NEXT_PUBLIC_WS_BASE_URL: ws://localhost:8000/ws
+    command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
