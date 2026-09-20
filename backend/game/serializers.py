@@ -50,6 +50,7 @@ class ScenarioImportSerializer(serializers.Serializer):
 
 class MysteryGameCreateSerializer(serializers.Serializer):
     scenario_id = serializers.UUIDField()
+    previous_result = serializers.JSONField(required=False)
     name = serializers.CharField(max_length=80, required=False, allow_blank=True)
     ai_count = serializers.IntegerField(min_value=0, default=0)
     ai_count_visibility = serializers.ChoiceField(

@@ -206,6 +206,13 @@ def _advance_mystery_locked(game: Game) -> bool:
     definition = game.scenario.definition
     phases = definition.get("phases", [])
     index = int(game.state.get("current_phase_index", 0))
+    if definition.get("campaign"):
+        from .campaign import can_advance, finish_locked
+        if not can_advance(game):
+            return False
+        if index + 1 >= len(phases):
+            finish_locked(game)
+            return True
     if index + 1 >= len(phases):
         state = dict(game.state)
         state["phase_ends_at"] = None

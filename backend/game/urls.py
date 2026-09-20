@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("scenarios/sample/", views.scenario_sample),
+    path("scenarios/structure/", views.scenario_structure),
+    path("mystery/games/<uuid:game_id>/campaign/", views.campaign_action),
     path("presets/", views.presets, name="presets"),
     path("config/validate/", views.validate_config, name="validate-config"),
     path("strategy/preview/", views.strategy_preview, name="strategy-preview"),

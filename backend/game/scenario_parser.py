@@ -52,6 +52,7 @@ def _normalize_definition(data: dict) -> dict:
             "id": cid,
             "name": raw.get("name") or cid,
             "role": raw.get("role") or "",
+            "skill": str(raw.get("skill") or ""),
             "public_profile": raw.get("public_profile") or raw.get("profile") or "",
             "secrets": [str(v) for v in _as_list(raw.get("secrets") or raw.get("secret"))],
             "objectives": [str(v) for v in _as_list(raw.get("objectives") or raw.get("objective"))],
@@ -118,7 +119,14 @@ def _normalize_definition(data: dict) -> dict:
         })
 
     truth = data.get("truth") or {}
+    campaign = None
+    if "campaign" in data:
+        from .campaign import normalize, phases as campaign_phases
+        campaign = normalize(data["campaign"])
+        phases = campaign_phases(campaign)
     return {
+        **({"campaign": campaign} if campaign else {}),
+        "npcs": data.get("npcs", []),
         "title": str(title),
         "players": int(players or 0),
         "characters": characters,

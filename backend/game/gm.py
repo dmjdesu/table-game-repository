@@ -26,6 +26,7 @@ def build_safe_gm_context(game: Game, seat: int, visible_payload: dict) -> dict:
         "current_phase": visible_payload.get("phase"),
         "public_evidence": visible_payload.get("evidence", []),
         "my_character": visible_payload.get("me"),
+        "my_cards": (visible_payload.get("campaign") or {}).get("owned_cards", []),
         "players": visible_payload.get("players", []),
         "finished": visible_payload.get("finished", False),
         "resolution": visible_payload.get("resolution"),

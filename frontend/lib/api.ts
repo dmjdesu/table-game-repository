@@ -8,7 +8,7 @@ import type {
   VillageConfig,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -46,11 +46,13 @@ export async function createMysteryGame(
   scenarioId: string,
   aiCount: number,
   aiCountVisibility: "exact" | "range" | "hidden",
+  previousResult?: unknown,
 ): Promise<MysteryGame> {
   return request("/mystery/games/", {
     method: "POST",
     body: JSON.stringify({
       scenario_id: scenarioId,
+      previous_result: previousResult,
       ai_count: aiCount,
       ai_count_visibility: aiCountVisibility,
     }),
@@ -100,4 +102,12 @@ export async function askMysteryGM(
     method: "POST",
     body: JSON.stringify({ seat, question }),
   });
+}
+
+export function structureScenario(text: string): Promise<{ yaml: string; validation_report: ImportedScenario["validation_report"]; attempts: number }> {
+  return request("/scenarios/structure/", { method: "POST", body: JSON.stringify({ text }) });
+}
+
+export function campaignAction(gameId: string, seat: number, data: Record<string, unknown>): Promise<MysteryGame> {
+  return request(`/mystery/games/${gameId}/campaign/`, { method: "POST", body: JSON.stringify({ ...data, seat }) });
 }

@@ -1,0 +1,307 @@
+title: 撮れ高のない死体 ― 最後の集合放送
+players: 9
+characters:
+- id: planner
+  name: アキ
+  role: 企画担当
+  public_profile: 撮影企画で企画担当を担当する架空の人物。
+  secrets:
+  - 巻島は、参加者の即興を台本通りと偽った編集について公表すると話していた。
+  - 所持品は「企画ノート」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 企画書照合：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: audio
+  name: レン
+  role: 音声担当
+  public_profile: 撮影企画で音声担当を担当する架空の人物。
+  secrets:
+  - 20時30分の声に混じった物音には、開幕の録音と同じ癖があった。
+  - 所持品は「録音メモ」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 音声比較：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: coordinator
+  name: ミオ
+  role: 進行担当
+  public_profile: 撮影企画で進行担当を担当する架空の人物。
+  secrets:
+  - 集合放送は予約できる。端末の表示名は認証した人の名前とは限らない。
+  - 所持品は「進行表」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 予約読解：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: scout
+  name: ユウ
+  role: 会場案内
+  public_profile: 撮影企画で会場案内を担当する架空の人物。
+  secrets:
+  - 操作室から編集席へ抜ける裏通路は3分。表からは8分かかる。
+  - 所持品は「会場の地図」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 経路確認：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: prankster
+  name: ソラ
+  role: 仕掛け担当
+  public_profile: 撮影企画で仕掛け担当を担当する架空の人物。
+  secrets:
+  - 撮影前、編集端末の表示名を自分の名前に変えた。権限変更は拒否された。
+  - 所持品は「変更履歴の控え」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 表示名照合：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: rules
+  name: リツ
+  role: ルール確認
+  public_profile: 撮影企画でルール確認を担当する架空の人物。
+  secrets:
+  - 20時の試合終了後、参加者の投票や役職能力は使えなくなった。
+  - 所持品は「ルール冊子」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 試合ログ読解：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: device
+  name: ケイ
+  role: 装置確認
+  public_profile: 撮影企画で装置確認を担当する架空の人物。
+  secrets:
+  - 準備中、スタッフが操作室でバッジを使い装置を試運転していた。
+  - 所持品は「点検メモ」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 装置読解：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: recorder
+  name: ナギ
+  role: 視点記録
+  public_profile: 撮影企画で視点記録を担当する架空の人物。
+  secrets:
+  - 今回の人狼の展開は即興だった。事前に言うことを指示された覚えはない。
+  - 所持品は「視点録画の索引」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 原本照合：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+- id: supplies
+  name: ハル
+  role: 備品担当
+  public_profile: 撮影企画で備品担当を担当する架空の人物。
+  secrets:
+  - 撮影前にE-2のバッジを黒瀬へ渡し、受領の署名をもらった。
+  - 所持品は「備品の受領控え」。前ゲームで死亡した場合は代理人がこの記録を引き継ぐ。
+  objectives:
+  - 自陣営と協力して事件の真相を解明する。
+  skill: 貸出照合：対応するカードを自分で取得すると、内容の読み方が追加表示される。追加取得は発生しない。
+npcs:
+- id: makishima
+  name: 巻島
+  role: 被害者・架空の監督
+- id: kurose
+  name: 黒瀬
+  role: 架空の編集担当
+- id: mashiba
+  name: 真柴
+  role: 架空の装置担当
+- id: tokura
+  name: 戸倉
+  role: 架空の会場管理
+truth:
+  culprit: kurose
+  crime_time: '20:12'
+  summary: 黒瀬は後付けの台本を事前の演出と偽った件を隠すため巻島を殺害。20時30分に録音を再生し、死亡時刻を遅く見せかけた。
+evidence: []
+events: []
+endings:
+- id: campaign_end
+  label: 最終結果
+  condition:
+    type: default
+  text: 各会議の回答と真相を公開する。
+campaign:
+  teams:
+  - id: village
+    label: 村人陣営
+  - id: wolves
+    label: 人狼陣営
+  role_teams:
+    villager: village
+    seer: village
+    medium: village
+    guard: village
+    wolf: wolves
+    madman: wolves
+  rounds:
+  - id: r1
+    label: 第1回会議：声の正体
+    discussion_seconds: 600
+    max_evidence: 2
+    questions:
+    - id: voice
+      prompt: 20時30分の巻島の声は何だったか？
+      options:
+      - id: live
+        label: 本人の生放送
+      - id: recording
+        label: 以前の録音の予約再生
+      - id: imitation
+        label: 別人による物まね
+      answer: recording
+      points: 2
+      evidence_any: []
+      evidence_points: 0
+    draw:
+      eligible: all
+      per_player: 1
+  - id: r2
+    label: 第2回会議：装置の作動
+    discussion_seconds: 600
+    max_evidence: 2
+    questions:
+    - id: mechanism
+      prompt: 死亡を引き起こした操作は何か？
+      options:
+      - id: vote
+        label: 人狼の投票結果
+      - id: remote
+        label: 予約された遠隔操作
+      - id: test
+        label: 操作室でのスタッフ試運転
+      answer: test
+      points: 2
+      evidence_any: []
+      evidence_points: 0
+    draw:
+      eligible: previous_winners
+      per_player: 1
+  - id: r3
+    label: 第3回会議：事件の真相
+    discussion_seconds: 600
+    max_evidence: 2
+    questions:
+    - id: culprit
+      prompt: 実行者は誰か？
+      options:
+      - id: kurose
+        label: 編集担当・黒瀬
+      - id: mashiba
+        label: 装置担当・真柴
+      - id: tokura
+        label: 会場管理・戸倉
+      answer: kurose
+      points: 2
+      evidence_any:
+      - card08
+      - card09
+      - card11
+      - card12
+      evidence_points: 1
+    - id: motive
+      prompt: 主な動機は何か？
+      options:
+      - id: credit
+        label: 即興企画を事前の自作演出だと偽った件の隠蔽
+      - id: prize
+        label: 人狼の賞金を独占するため
+      - id: accident
+        label: 故意ではなく片付け中の事故
+      answer: credit
+      points: 2
+      evidence_any:
+      - card13
+      - card14
+      - card15
+      evidence_points: 1
+  cards:
+  - id: card01
+    title: 開幕の点呼
+    target: 音声記録
+    content: 開幕に巻島が「全員集まって。これから撮影を始めます」と発言。その直後、金属音が1回、机を叩く音が3回。この一連の音は20時30分の集合放送と一致する。原音のIDはA-01。
+    interpretations:
+      audio: 声だけでなく背景音の並びも同じなので、別の発言より同一録音の再生を疑える。
+  - id: card02
+    title: 集合放送の予約
+    target: 放送端末
+    content: 20時14分に、20時30分開始・音源A-01の再生予約が登録された。生放送ではない。端末の表示名は「ソラ」。認証欄には別にE-2と記録されている。
+    interpretations:
+      coordinator: 予約登録時刻と放送時刻は異なる。20時30分に話者が生きていた証明にはならない。
+  - id: card03
+    title: 編集席の連続映像
+    target: 定点カメラ
+    content: 黒瀬は20時20分から20時35分まで編集席に映り続けている。集合放送に「監督、やっと準備できたみたいですね」と反応した。この映像では20時20分以前の行動は分からない。
+    interpretations:
+      recorder: 連続映像の保証範囲を、それ以前まで広げることはできない。
+  - id: card04
+    title: 人狼の試合終了記録
+    target: ゲームサーバー
+    content: 人狼の試合は20時00分に終了。参加者の投票・役職能力は無効化された。その後の参加者操作はすべて拒否され、処刑の実行記録もない。
+    interpretations:
+      rules: 人狼の勝敗や役職による操作と、撮影設備のスタッフ操作は別系統。
+  - id: card05
+    title: 装置の再作動
+    target: 設備ログ
+    content: 20時11分、安全装置を手動解除。20時12分、巻島を対象に装置が作動し、その時点で死亡した。実行区分はT。参加者の投票による実行欄は空欄だった。
+    interpretations:
+      device: Tの意味は運用マニュアルと照合できる。死亡時刻と放送時刻は一致しない。
+  - id: card06
+    title: 装置の運用マニュアル
+    target: 点検棚
+    content: 区分Tはスタッフの試運転。試合終了後も利用可能で、スタッフバッジ認証と操作室内での安全解除・実行ボタン操作が必要。T操作は遠隔実行も予約実行もできない。
+    interpretations:
+      device: 現場の操作室にいた者が実行した。予約放送と予約殺害を混同しないこと。
+  - id: card07
+    title: 勝手に変えられた名札
+    target: 端末設定
+    content: 18時40分、参加者のソラが端末表示名を「編集室」から「ソラ」に変更した。同時に試した操作権限の変更は拒否された。表示名だけが変わり、実際の権限は変わっていない。
+    interpretations:
+      prankster: 表示名は自分のいたずらの結果だが、後のE-2認証が自分のものになるわけではない。
+  - id: card08
+    title: 操作室の入退室
+    target: 扉の認証記録
+    content: 20時09分にE-2が入室し、20時15分に退室した。この間、他の認証はない。操作室への出入口はこの扉だけ。外は表廊下と編集室への裏通路に分岐する。
+    interpretations:
+      supplies: 時刻とバッジの貸出先を組み合わせて人物を絞り込める。
+  - id: card09
+    title: スタッフの貸出品
+    target: 備品台帳
+    content: 真柴にはE-1、黒瀬にはE-2と編集端末、戸倉にはE-3を貸し出した。各人が受領に署名している。事件発覚まで返却・再発行はない。
+    interpretations:
+      supplies: 台帳は貸出先の根拠になる。途中の貸し借りの有無は別の記録と照合する。
+  - id: card10
+    title: 映らない近道
+    target: 会場図
+    content: 操作室から編集席へ表廊下を通ると8分、裏通路なら3分。裏通路は集合場所のカメラには映らない。20時15分に出れば20時18分に編集席へ着ける。
+    interpretations:
+      scout: 20時20分からの編集席映像と、20時12分の操作室滞在は両立する。
+  - id: card11
+    title: 裏通路の一コマ
+    target: 通路カメラ
+    content: 20時16分、黒瀬が編集席の方向へ歩く。胸元のバッジを確認して服の内側へ入れる際、E-2の文字が読める。操作室退出からこの地点まで、映像に他人との接触やバッジの交換はない。
+    interpretations:
+      scout: 操作室の認証と同じ番号を、直後の黒瀬が持っている。
+  - id: card12
+    title: ほかのスタッフはどこにいたか
+    target: スタッフ視点映像
+    content: 真柴は20時05分〜20時20分、別棟の映像に途切れず映る。戸倉は20時00分〜20時18分、搬入口の連続映像に映る。二人とも20時12分には操作室にいない。
+    interpretations:
+      recorder: マニュアルの「現地操作が必要」という条件と合わせると意味がある。
+  - id: card13
+    title: 先に書いたはずの台本
+    target: 編集原稿
+    content: 表紙に「撮影前・午後6時完成。参加者の動きと発言は以下の演出案に基づく」とある。しかし実際のファイル作成時刻は20時02分で、終了した人狼の最終結果まで記されている。表紙の日時は手入力だった。
+    interpretations:
+      planner: 試合後の記録を試合前の指示書に見せかけた可能性がある。
+  - id: card14
+    title: 監督が公開しようとしていたもの
+    target: 巻島のメッセージ
+    content: 20時06分、巻島は黒瀬に「台本が先にあったという説明と作成時刻が合わない。参加者の即興を全部演出扱いにはできない。明日、原本と履歴を公開する。説明してほしい」と送信。黒瀬は「分かりました。先に装置の片付けを済ませます」と返した。
+    interpretations:
+      planner: 公開されれば困るのは誰か、何を隠すためなのかを考えられる。
+  - id: card15
+    title: 消す予定だった記録
+    target: 削除予約
+    content: 20時14分、元の視点録画と台本の作成・更新履歴を21時に削除する予約が登録された。公開用の編集済み動画と完成版台本は残す設定。認証はE-2。削除はまだ実行されていない。
+    interpretations:
+      audio: 消す対象は録音だけでなく編集前の記録と作成時刻。残す対象との違いを考えられる。
+  introduction: ニート部の撮影企画を題材にしたフィクション。実在の参加者とは独立した架空の人物を演じる。20時、人狼企画が終了。20時30分、監督・巻島から集合放送が流れた。その直後、巻島が撮影装置の中で死亡しているのが見つかる。容疑者は編集担当の黒瀬、装置担当の真柴、会場管理の戸倉。KUNを含む参加者は事件の被害者でも犯人でもない。前ゲームで脱落した席も代理人として参加し、形見の記録を引き継ぐ。
+  speech_ap_per_phase: 1000
+  successor_label: 形見の記録を引き継いだ代理人
+  ending_text: 黒瀬は20時12分にスタッフ試運転で巻島を殺害。20時14分に集合放送と原本削除を予約し、裏通路から編集席へ戻った。20時30分の声は開幕の録音だった。台本の偽装を公表されることを恐れた事件であり、人狼の勝敗や参加者の役職が殺害を実行したわけではない。
