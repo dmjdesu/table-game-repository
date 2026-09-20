@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  API_BASE,
+  structureScenario,
   advanceMystery,
   askMysteryGM,
   createMysteryGame,
@@ -12,6 +14,7 @@ import {
 } from "../lib/api";
 import type { ImportedScenario, MysteryGame, ScenarioFormat } from "../lib/types";
 import RealtimeRoom from "./RealtimeRoom";
+import CampaignPanel from "./CampaignPanel";
 
 const sample = `title: 雪山荘の惨劇
 players: 3
@@ -78,8 +81,11 @@ endings:
     text: 真犯人は逃げ切った。
 `;
 
-export default function MysteryBuilder() {
+export default function MysteryBuilder({ initialGameId }: { initialGameId?: string }) {
   const [rawText, setRawText] = useState(sample);
+  const [prose, setProse] = useState("");
+  const [previousResult, setPreviousResult] = useState("");
+  const [structureMessage, setStructureMessage] = useState("");
   const [format, setFormat] = useState<ScenarioFormat>("yaml");
   const [scenario, setScenario] = useState<ImportedScenario | null>(null);
   const [game, setGame] = useState<MysteryGame | null>(null);
@@ -92,6 +98,18 @@ export default function MysteryBuilder() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!initialGameId) return;
+    let disposed = false;
+    setLoading(true);
+    getMysteryGame(initialGameId, 1).then(next => {
+      if (!disposed) setGame(next);
+    }).catch(e => {
+      if (!disposed) setError(e instanceof Error ? e.message : "セッションを読み込めませんでした。");
+    }).finally(() => { if (!disposed) setLoading(false); });
+    return () => { disposed = true; };
+  }, [initialGameId]);
+
   const report = scenario?.validation_report;
   const canStart = scenario?.status === "ready";
   const playerCount = scenario?.definition?.players ?? 0;
@@ -99,9 +117,42 @@ export default function MysteryBuilder() {
   const currentCharacter = game?.me;
   const targetOptions = useMemo(() => game?.players ?? [], [game]);
 
+  function changeDraft(text: string) {
+    setRawText(text); setScenario(null); setGame(null);
+  }
+
+  function downloadDraft() {
+    const blob = new Blob([rawText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url;
+    a.download = `scenario.${format === "markdown" ? "md" : format}`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function loadCampaignSample() {
+    setLoading(true); setError("");
+    try {
+      const responses = await Promise.all([fetch(`${API_BASE}/scenarios/sample/`), fetch(`${API_BASE}/scenarios/sample/?kind=result`)]);
+      if (responses.some(r => !r.ok)) throw new Error("サンプルを読み込めませんでした。");
+      changeDraft(await responses[0].text()); setFormat("yaml");
+      setPreviousResult(await responses[1].text()); setAiCount(0);
+    } catch (e) { setError(e instanceof Error ? e.message : "読込に失敗しました。"); }
+    finally { setLoading(false); }
+  }
+
+  async function handleStructure() {
+    setLoading(true); setError(""); setStructureMessage("");
+    try {
+      const result = await structureScenario(prose);
+      changeDraft(result.yaml); setFormat("yaml");
+      setStructureMessage(result.validation_report.valid ? "YAMLに構造化しました。内容を確認し、解析・設定チェックから取り込んでください。" : "YAMLを生成しましたが修正が必要です。解析・設定チェックで詳細を確認してください。");
+    } catch (e) { setError(e instanceof Error ? e.message : "構造化に失敗しました。"); }
+    finally { setLoading(false); }
+  }
+
   async function loadFile(file: File) {
     const text = await file.text();
-    setRawText(text);
+    changeDraft(text);
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext === "json") setFormat("json");
     else if (ext === "md" || ext === "txt") setFormat("markdown");
@@ -115,7 +166,7 @@ export default function MysteryBuilder() {
     try {
       const imported = await importScenario(rawText, format);
       setScenario(imported);
-      setAiCount(Math.min(1, imported.definition?.players ?? 0));
+      setAiCount(imported.definition?.campaign ? 0 : Math.min(1, imported.definition?.players ?? 0));
     } catch (e) {
       setError(e instanceof Error ? e.message : "シナリオを読み込めませんでした。");
     } finally {
@@ -128,8 +179,9 @@ export default function MysteryBuilder() {
     setLoading(true);
     setError("");
     try {
-      const created = await createMysteryGame(scenario.id, aiCount, aiVisibility);
-      const privateView = await getMysteryGame(created.id, seat);
+      const created = await createMysteryGame(scenario.id, aiCount, aiVisibility, scenario.definition?.campaign ? JSON.parse(previousResult) : undefined);
+      const privateView = await getMysteryGame(created.id, 1);
+      setSeat(1);
       setGame(privateView);
       setVoteTarget(privateView.players[0]?.character_id ?? "");
     } catch (e) {
@@ -140,9 +192,13 @@ export default function MysteryBuilder() {
   }
 
   async function refreshForSeat(nextSeat: number) {
-    setSeat(nextSeat);
     if (!game) return;
-    setGame(await getMysteryGame(game.id, nextSeat));
+    setLoading(true); setError("");
+    try {
+      const updated = await getMysteryGame(game.id, nextSeat);
+      setSeat(nextSeat); setGame(updated); setGmReply("");
+    } catch (e) { setError(e instanceof Error ? e.message : "座席を読み込めませんでした。"); }
+    finally { setLoading(false); }
   }
 
   async function handleAdvance() {
@@ -171,12 +227,27 @@ export default function MysteryBuilder() {
 
   return (
     <div className="embeddedApp">
+      {initialGameId && loading && <p>セッションを読み込み中…</p>}
+      {initialGameId && error && <pre className="error">{error}</pre>}
+      {!initialGameId && <>
       <section className="panel">
         <div className="sectionHead">
           <div><span>01</span><h2>シナリオ読込</h2></div>
-          <p>YAML / JSON / 構造化Markdown。自由文LLM変換は後から差し替え。</p>
+          <p>自然文からYAMLを生成し、編集・検証して取り込めます。</p>
         </div>
 
+        <p>作者用のサンプルには真相と個別情報が含まれます。</p>
+        <div className="inlineFields">
+          <a className="ghost" href={`${API_BASE}/scenarios/sample/`}>9人用サンプルをDL（YAML）</a>
+          <a className="ghost" href={`${API_BASE}/scenarios/sample/?kind=result`}>人狼の結果の入力例をDL</a>
+          <button className="ghost" disabled={loading} onClick={loadCampaignSample}>9人用サンプルを読み込む</button>
+        </div>
+        <label className="field">自然文のシナリオ・ルール
+          <textarea value={prose} onChange={e => setProse(e.target.value)} placeholder="舞台、登場人物、事件の真相、会議数、カードの内容や取得条件を書いてください。" rows={6} />
+        </label>
+        <p className="muted">AI構造化を実行すると、この文章をサーバーに設定されたAIへ送信します。生成後は内容を確認できます。</p>
+        <button className="ghost" disabled={loading || !prose.trim()} onClick={handleStructure}>{loading ? "処理中…" : "AIでYAMLを生成"}</button>
+        {structureMessage && <p>{structureMessage}</p>}
         <div className="mysteryImportGrid">
           <div>
             <div className="inlineFields">
@@ -191,8 +262,9 @@ export default function MysteryBuilder() {
                 <input type="file" accept=".yaml,.yml,.json,.md,.txt" onChange={(e) => e.target.files?.[0] && loadFile(e.target.files[0])} />
               </label>
             </div>
-            <textarea className="scenarioText" value={rawText} onChange={(e) => setRawText(e.target.value)} spellCheck={false} />
-            <button className="primary wideButton" disabled={loading} onClick={handleImport}>解析・矛盾チェック</button>
+            <textarea className="scenarioText" value={rawText} onChange={(e) => changeDraft(e.target.value)} spellCheck={false} />
+            <button className="ghost" onClick={downloadDraft}>編集中のシナリオをDL</button>
+            <button className="primary wideButton" disabled={loading} onClick={handleImport}>解析・設定チェック</button>
           </div>
 
           <div className="validationBox">
@@ -231,18 +303,26 @@ export default function MysteryBuilder() {
             </label>
             <div className="field"><span>人数</span><div className="staticField">{playerCount}人</div></div>
           </div>
+          {scenario.definition?.campaign && <details><summary>単体テスト用：前の人狼の結果を指定</summary><label className="field">前の人狼の結果（JSON）
+            <p>入力例の名前・役職・生死・勝利陣営を実際の結果に差し替えてください。キャラクターは役職とは独立して割り当てられます。</p>
+            <input type="file" accept=".json" onChange={async e => { const file = e.target.files?.[0]; if (file) setPreviousResult(await file.text()); }} />
+            <textarea rows={12} value={previousResult} onChange={e => setPreviousResult(e.target.value)} />
+          </label></details>}
           <button className="primary wideButton" disabled={!canStart || loading} onClick={handleStart}>
             {canStart ? "GMレス・セッション開始" : "エラーを直すまで開始できない"}
           </button>
         </section>
       )}
 
+      </>}
+
       {game && (
         <section className="panel">
           <div className="sectionHead"><div><span>03</span><h2>ゲーム進行</h2></div><p>{game.ai_presence_hint}</p></div>
+          {!initialGameId && <p><a href={`/mystery/${game.id}`}>このマダミスの参加画面を開く</a></p>}
           <div className="sessionToolbar">
             <label className="field">自分の座席
-              <select value={seat} onChange={(e) => refreshForSeat(Number(e.target.value))}>
+              <select disabled={loading} value={seat} onChange={(e) => refreshForSeat(Number(e.target.value))}>
                 {game.players.map((player) => <option key={player.seat} value={player.seat}>Seat {player.seat} / {player.display_name}</option>)}
               </select>
             </label>
@@ -254,6 +334,7 @@ export default function MysteryBuilder() {
           </div>
 
           <RealtimeRoom<MysteryGame>
+            key={`${game.id}:${seat}`}
             gameId={game.id}
             seat={seat}
             onGameSnapshot={(nextGame) => setGame(nextGame)}
@@ -274,7 +355,9 @@ export default function MysteryBuilder() {
             {game.evidence.map((item) => <article key={item.id}><small>EVIDENCE</small><h3>{item.title}</h3><p>{item.content}</p></article>)}
           </div>
 
-          {!game.finished && (
+          {game.campaign && <CampaignPanel key={`${game.id}:${seat}:${game.phase?.id}`} game={game} seat={seat} onChange={setGame} />}
+
+          {!game.finished && !game.campaign && (
             <div className="gameControls">
               <button className="ghost" onClick={handleAdvance}>次のフェーズへ</button>
               <button className="ghost" onClick={handleInvestigateDesk}>机を調べる</button>

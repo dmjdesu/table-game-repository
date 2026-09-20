@@ -57,6 +57,7 @@ export type ScenarioValidationReport = {
 };
 
 export type ScenarioDefinition = {
+  campaign?: Record<string, unknown>;
   title: string;
   players: number;
   characters: Array<{
@@ -101,6 +102,7 @@ export type MysteryPlayer = {
 };
 
 export type MysteryGame = {
+  campaign?: CampaignView | null;
   id: string;
   name: string;
   game_type: "murder_mystery";
@@ -125,4 +127,26 @@ export type MysteryGame = {
     text: string;
     truth: Record<string, unknown>;
   } | null;
+};
+
+export type CampaignView = {
+  introduction: string;
+  teams: Array<{ id: string; label: string }>;
+  previous_winner: string;
+  team: string | null;
+  identity: string | null;
+  team_members: Array<{ seat: number; display_name: string }>;
+  rounds: Array<{ id: string; label: string }>;
+  round_id: string;
+  max_evidence: number;
+  my_history: Array<{ round_id: string; label: string; answers: Array<{ question: string; label: string }>; evidence: string[] }>;
+  skill: string;
+  catalogue: Array<{ id: string; title: string; target: string; taken: boolean }>;
+  owned_cards: Array<{ id: string; title: string; content: string; interpretation: string }>;
+  remaining_picks: number;
+  questions: Array<{ id: string; prompt: string; options: Array<{ id: string; label: string }>; points: number; evidence_points: number }>;
+  submitted_teams: string[];
+  my_submission: { answers: Record<string, string>; evidence: string[]; submitted_by: number } | null;
+  can_advance: boolean;
+  results: { scores: Record<string, number>; winners: string[]; rounds: Array<{ round_id: string; round_label: string; team: string; question: string; answer: string; answer_label: string; submitted_label: string; submission: { answers: Record<string, string>; evidence: string[] }; score: number }> } | null;
 };

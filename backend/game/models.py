@@ -60,6 +60,7 @@ class Game(models.Model):
     abstract_state = models.JSONField(default=dict)
     strategy_profile = models.JSONField(default=dict)
     state = models.JSONField(default=dict)
+    legacy = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

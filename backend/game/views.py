@@ -155,6 +155,7 @@ def mystery_games(request):
             player_names=data.get("player_names") or [],
             ai_count=data.get("ai_count", 0),
             ai_count_visibility=data.get("ai_count_visibility", "range"),
+            previous_result=data.get("previous_result"),
         )
     except ValueError as exc:
         return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
@@ -180,8 +181,12 @@ def mystery_game_detail(request, game_id):
 @api_view(["POST"])
 def mystery_advance(request, game_id):
     game = _mystery_game_or_404(game_id)
+    if game.scenario.definition.get("campaign") and request.data.get("seat") != 1:
+        return Response({"detail": "進行操作はホスト（座席1）が行ってください。"}, status=403)
     changed = advance_game_phase(game.id)
     game.refresh_from_db()
+    if not changed and game.scenario.definition.get("campaign") and not game.state.get("finished"):
+        return Response({"detail": "カード取得または陣営の回答が完了するまで進めません。"}, status=409)
     if changed:
         broadcast_game_update(game.id, "phase.http")
     seat = request.data.get("seat")
@@ -244,3 +249,57 @@ def mystery_gm_help(request, game_id):
         "source": reply.source,
         "safe_context": safe_context,
     })
+
+
+@api_view(["GET"])
+def scenario_sample(request):
+    """Author download, intentionally includes the complete scenario and solution."""
+    from pathlib import Path
+    from django.http import FileResponse
+    kind = request.query_params.get("kind", "scenario")
+    filename = "previous_result.example.json" if kind == "result" else "neet_recording.yaml"
+    path = Path(__file__).parent / "scenarios" / filename
+    return FileResponse(path.open("rb"), as_attachment=True, filename=filename,
+                        content_type="application/json" if kind == "result" else "application/yaml")
+
+
+@api_view(["POST"])
+def scenario_structure(request):
+    from rest_framework import serializers
+    from .scenario_ai import generate_yaml
+    class Input(serializers.Serializer):
+        text = serializers.CharField(min_length=1, max_length=50000)
+    data = Input(data=request.data)
+    data.is_valid(raise_exception=True)
+    try:
+        result = generate_yaml(data.validated_data["text"])
+    except RuntimeError as exc:
+        return Response({"detail": str(exc)}, status=503)
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=422)
+    except Exception:
+        # Do not expose provider credentials, prompts or transport diagnostics.
+        return Response({"detail": "AI構造化に失敗しました。時間を置いて再試行してください。"}, status=502)
+    return Response(result)
+
+
+@api_view(["POST"])
+def campaign_action(request, game_id):
+    from rest_framework import serializers
+    from .campaign import act
+    class Input(serializers.Serializer):
+        seat = serializers.IntegerField(min_value=1)
+        action = serializers.ChoiceField(choices=["pick", "submit"])
+        card_id = serializers.CharField(required=False)
+        answers = serializers.DictField(child=serializers.CharField(), required=False)
+        evidence = serializers.ListField(child=serializers.CharField(), required=False)
+    _mystery_game_or_404(game_id)
+    serializer = Input(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+    try:
+        game = act(game_id, data["seat"], data["action"], data)
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=400)
+    broadcast_game_update(game.id, "campaign.http")
+    return Response(mystery_payload(game, seat=data["seat"]))

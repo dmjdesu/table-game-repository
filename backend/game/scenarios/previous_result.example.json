@@ -1,0 +1,60 @@
+{
+  "source_label": "入力例：実際の結果へ差し替えてください",
+  "winner_team": "village",
+  "players": [
+    {
+      "seat": 1,
+      "display_name": "KUN",
+      "role": "villager",
+      "alive": true
+    },
+    {
+      "seat": 2,
+      "display_name": "なっしー",
+      "role": "wolf",
+      "alive": false
+    },
+    {
+      "seat": 3,
+      "display_name": "この",
+      "role": "seer",
+      "alive": true
+    },
+    {
+      "seat": 4,
+      "display_name": "陰キャ転生",
+      "role": "villager",
+      "alive": false
+    },
+    {
+      "seat": 5,
+      "display_name": "ひまじん",
+      "role": "madman",
+      "alive": false
+    },
+    {
+      "seat": 6,
+      "display_name": "かえる",
+      "role": "guard",
+      "alive": true
+    },
+    {
+      "seat": 7,
+      "display_name": "とーます",
+      "role": "medium",
+      "alive": false
+    },
+    {
+      "seat": 8,
+      "display_name": "紅茶",
+      "role": "wolf",
+      "alive": false
+    },
+    {
+      "seat": 9,
+      "display_name": "らーば",
+      "role": "villager",
+      "alive": false
+    }
+  ]
+}

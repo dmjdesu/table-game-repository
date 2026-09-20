@@ -52,6 +52,7 @@ def create_mystery_game(
     player_names: list[str] | None = None,
     ai_count: int = 0,
     ai_count_visibility: str = "range",
+    previous_result: dict | None = None,
 ) -> Game:
     if scenario.status != Scenario.Status.READY:
         raise ValueError("検証済みのシナリオだけゲーム開始できます。")
@@ -64,12 +65,27 @@ def create_mystery_game(
     if not 0 <= ai_count <= player_count:
         raise ValueError("AI人数が不正です。")
 
+    legacy = {}
+    if definition.get("campaign"):
+        from .campaign import validate_outcome
+        if previous_result is None:
+            raise ValueError("連動シナリオには前の人狼の結果が必要です。")
+        legacy = validate_outcome(definition, previous_result)
+        if ai_count:
+            raise ValueError("連動シナリオの自動AIプレイヤーは未対応です。AI人数を0にしてください。")
+        player_names = [p["display_name"] for p in sorted(legacy["players"], key=lambda p: p["seat"])]
+
     names = list(player_names or [])
     names += [f"Player {index}" for index in range(len(names) + 1, player_count + 1)]
     names = names[:player_count]
 
     shuffled = characters[:]
     random.SystemRandom().shuffle(shuffled)
+    if legacy:
+        fixed = {p["seat"]: p["character_id"] for p in legacy["players"] if p.get("character_id")}
+        available = iter([c for c in shuffled if c["id"] not in fixed.values()])
+        by_id = _character_map(definition)
+        shuffled = [by_id[fixed[s]] if s in fixed else next(available) for s in range(1, player_count + 1)]
     seats = list(range(1, player_count + 1))
     ai_seats = set(random.SystemRandom().sample(seats, k=ai_count))
 
@@ -83,8 +99,9 @@ def create_mystery_game(
         config={
             "ai_count_visibility": ai_count_visibility,
             "source_format": scenario.source_format,
-            "speech_ap_per_phase": 12,
+            "speech_ap_per_phase": definition.get("campaign", {}).get("speech_ap_per_phase", 12),
         },
+        legacy=legacy,
         state=_initial_state(definition),
         abstract_state={
             "game_type": "murder_mystery",
@@ -175,7 +192,16 @@ def mystery_payload(game: Game, *, seat: int | None = None) -> dict:
             "truth": definition.get("truth", {}),
         }
 
+    campaign_view = None
+    if definition.get("campaign"):
+        from .campaign import public_payload
+        campaign_view = public_payload(game, seat)
+        if resolution:
+            resolution["label"] = "最終結果"
+            resolution["text"] = definition["campaign"]["ending_text"]
+
     return {
+        "campaign": campaign_view,
         "id": str(game.id),
         "name": game.name,
         "game_type": game.game_type,
@@ -197,6 +223,11 @@ def mystery_payload(game: Game, *, seat: int | None = None) -> dict:
 
 @transaction.atomic
 def advance_phase(game: Game) -> Game:
+    if game.scenario.definition.get("campaign"):
+        from .realtime import advance_game_phase
+        advance_game_phase(game.id)
+        game.refresh_from_db()
+        return game
     if game.state.get("finished"):
         return game
     definition = game.scenario.definition
@@ -224,6 +255,8 @@ def advance_phase(game: Game) -> Game:
 
 @transaction.atomic
 def process_action(game: Game, *, actor_seat: int, action: str, target: str = "") -> dict:
+    if game.scenario.definition.get("campaign"):
+        return {"triggered": [], "message": "連動シナリオでは専用の調査・会議操作を使用してください。"}
     if game.state.get("finished"):
         return {"triggered": [], "message": "ゲームは終了しています。"}
 
@@ -309,6 +342,8 @@ def _resolve_ending(game: Game) -> None:
 
 @transaction.atomic
 def cast_vote(game: Game, *, voter_seat: int, target_character_id: str) -> Game:
+    if game.scenario.definition.get("campaign"):
+        raise ValueError("連動シナリオでは会議の陣営回答を使用してください。")
     if game.state.get("finished"):
         return game
     character_ids = set(_character_map(game.scenario.definition))
